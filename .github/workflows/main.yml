@@ -47,11 +47,11 @@ jobs:
           azcliversion: latest
           inlineScript: |
             az storage blob upload \
-            --account-name ${{ env.STORAGE_NAME }} \ 
+            --account-name ${{ env.STORAGE_NAME }} \
             --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
             --name pytest-results-${{ github.sha }}.txt \
             --file ${{ github.workspace }}/pytest-results-${{ github.sha }}.txt \
-            --auth-mode login \ 
+            --auth-mode login \
             --overwrite
             
         - name: 3-3. Upload PyTest Result to GithubActions
@@ -67,7 +67,7 @@ jobs:
           with:
             azcliversion: latest
             inlineScript: |
-              az storage blob download \ 
+              az storage blob download \
               --account-name ${{ env.STORAGE_NAME }} \
               --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
               --name ${{ env.DOWNLOAD_FILENAME }} \
