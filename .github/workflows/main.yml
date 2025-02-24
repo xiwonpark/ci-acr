@@ -55,12 +55,12 @@ jobs:
               --overwrite
             
         - name: 3-3. Upload PyTest Result to GithubActions
+          if: ${{ always() }}
           uses: actions/upload-artifact@v4
           with:
             name: pytest-result
             path: ${{ github.workspace }}/pytest-results-${{ github.sha }}.txt
             # Use always() to alwats run this step to publish test results when there are test failures
-          if: ${{ always() }}
 
         - name: 3-4. Download File From Blob (AzureCLI)
           uses: azure/cli@v2
