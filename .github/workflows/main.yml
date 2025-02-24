@@ -47,12 +47,12 @@ jobs:
           azcliversion: latest
           inlineScript: |
             az storage blob upload \
-            --account-name ${{ env.STORAGE_NAME }} \
-            --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
-            --name pytest-results-${{ github.sha }}.txt \
-            --file ${{ github.workspace }}/pytest-results-${{ github.sha }}.txt \
-            --auth-mode login \
-            --overwrite
+              --account-name ${{ env.STORAGE_NAME }} \
+              --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
+              --name pytest-results-${{ github.sha }}.txt \
+              --file ${{ github.workspace }}/pytest-results-${{ github.sha }}.txt \
+              --auth-mode login \
+              --overwrite
             
         - name: 3-3. Upload PyTest Result to GithubActions
           uses: actions/upload-artifact@v4
