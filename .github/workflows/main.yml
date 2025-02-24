@@ -32,7 +32,11 @@ jobs:
       - name: 2-2. Install Requirements and PyTest
         run: |
           pip install -r requirements.txt
+          python app/main.py &
+          FLASK_PID=$!
+          sleep 5
           pytest app/test_rest.py | tee ${{ github.workspace }}/pytest-results-${{ github.sha }}.txt
+          kill $FLASK_PID
 
       - name: 3-1. Azure Login
         uses: azure/login@v2
