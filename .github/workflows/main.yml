@@ -41,18 +41,18 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-  #     - name: 3-2. Upload PyTest Result to Blob (AzureCLI)
-  #       uses: azure/cli@v2
-  #       with:
-  #         azcliversion: latest
-  #         inlineScript: |
-  #           az storage blob upload \
-  #             --account-name ${{ env.STORAGE_NAME }} \
-  #             --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
-  #             --name pytest-results-${{ github.sha }}.txt \
-  #             --file ${{ github.workspace }}/pytest-results-${{ github.sha }}.txt \
-  #             --auth-mode login \
-  #             --overwrite
+      - name: 3-2. Upload PyTest Result to Blob (AzureCLI)
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az storage blob upload \
+              --account-name ${{ env.STORAGE_NAME }} \
+              --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
+              --name pytest-results-${{ github.sha }}.txt \
+              --file ${{ github.workspace }}/pytest-results-${{ github.sha }}.txt \
+              --auth-mode login \
+              --overwrite
             
   #       - name: 3-3. Upload PyTest Result to GithubActions
   #         if: ${{ always() }}
