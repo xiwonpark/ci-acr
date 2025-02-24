@@ -40,6 +40,7 @@ jobs:
           auth-type: IDENTITY
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
 
       - name: 3-2. Upload PyTest Result to Blob (AzureCLI)
         uses: azure/cli@v2
