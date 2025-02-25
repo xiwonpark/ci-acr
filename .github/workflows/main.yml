@@ -13,7 +13,7 @@ env:
   IMAGE_NAME: test
   STORAGE_NAME: githubsa4poc
   STORAGE_CONTAINER_NAME: test
-  DOWNLOAD_FILENAME: test.txt
+  DOWNLOAD_FILENAME: test_file
   BUILDX_CACHE_DIR: /tmp/buildx_cache_dir/
   CONTAINER_NAME: my-container
 
@@ -66,134 +66,134 @@ jobs:
           path: ${{ github.workspace }}/pytest-results-${{ github.sha }}.txt
             # Use always() to alwats run this step to publish test results when there are test failures
 
-  #       - name: 3-4. Download File From Blob (AzureCLI)
-  #         uses: azure/cli@v2
-  #         with:
-  #           azcliversion: latest
-  #           inlineScript: |
-  #             az storage blob download \
-  #             --account-name ${{ env.STORAGE_NAME }} \
-  #             --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
-  #             --name ${{ env.DOWNLOAD_FILENAME }} \
-  #             --file ${{ github.workspace}}/${{ env.DOWNLOAD_FILENAME }} \
-  #             --auth-mode login
+      - name: 3-4. Download File From Blob (AzureCLI)
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az storage blob download \
+            --account-name ${{ env.STORAGE_NAME }} \
+            --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
+            --name ${{ env.DOWNLOAD_FILENAME }} \
+            --file ${{ github.workspace }}/${{ env.DOWNLOAD_FILENAME }} \
+            --auth-mode login
 
-  #       - name: 4-1. Setup Docker Buildx
-  #         uses: docker/setup-buildx-action@v3
+      - name: 4-1. Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-  #       - name: 4-2. Docker build (Save image to local)
-  #         uses: docker/build-push-action@v6.9.0
-  #         with:
-  #           context:
-  #           cache-from: type=local,src=${{ env.BUILDX_CACHE_DIR }}
-  #           cache-to: type=local, dest=${{ env.BUILDX_CACHE_DIR }}, mode=max
-  #           platforms: linux/amd64
-  #           push: false
-  #           outputs: type=docker
-  #           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      - name: 4-2. Docker build (Save image to local)
+        uses: docker/build-push-action@v6.9.0
+        with:
+          context: .
+          cache-from: type=local,src=${{ env.BUILDX_CACHE_DIR }}
+          cache-to: type=local,dest=${{ env.BUILDX_CACHE_DIR }},mode=max
+          platforms: linux/amd64
+          push: false
+          outputs: type=docker
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-  #       - name: 5. Docker Run (bind mount)
-  #         run: |
-  #           docker run -d -p 8080:8080 \
-  #           --name ${{ env.CONTAINER_NAME }} \
-  #           -v "${{ github.workspace}}/${{ env.DOWNLOAD_FILENAME }}":/home/python/${{ env.DOWNLOAD_FILENAME}} \
-  #           -e FILEPATH="/home/python/${{ env.DOWNLOAD_FILENAME }}" \
-  #           ${{ env.REGISTRY}}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      - name: 5. Docker Run (bind mount)
+        run: |
+          docker run -d -p 8080:8080 \
+          --name ${{ env.CONTAINER_NAME }} \
+          -v "${{ github.workspace}}/${{ env.DOWNLOAD_FILENAME }}":/home/python/${{ env.DOWNLOAD_FILENAME }} \
+          -e FILEPATH="/home/python/${{ env.DOWNLOAD_FILENAME }}" \
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-  #       - name: 6-1. Curl Test (Container)
-  #         run: |
-  #           sleep 5s
-  #           max=10; for((i=1; i <= $max; i++)); do curl localhost:8080/text >> curl-test-${{ github.sha }}.txt; done;
+      - name: 6-1. Curl Test (Container)
+        run: |
+          sleep 5s
+          max=10; for((i=1; i <= $max; i++)); do curl localhost:8080/text >> curl-test-${{ github.sha }}.txt; done;
 
-  #       - name: 6-2. Upload Test Result to Blob (AzureCLI)
-  #         uses: azure/cli@v2
-  #         with:
-  #           azcliversion: latest
-  #           inlineScript: |
-  #             az storage blob upload \
-  #             --account-name ${{ env.STORAGE_NAME }} \
-  #             --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
-  #             --name curl-test-${{ github.sha }}.txt \
-  #             --file ${{ github.workspace }}/curl-test-${{ github.sha }}.txt \
-  #             --auth-mode login \
-  #             --overwrite
+      - name: 6-2. Upload Test Result to Blob (AzureCLI)
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az storage blob upload \
+            --account-name ${{ env.STORAGE_NAME }} \
+            --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
+            --name curl-test-${{ github.sha }}.txt \
+            --file ${{ github.workspace }}/curl-test-${{ github.sha }}.txt \
+            --auth-mode login \
+            --overwrite
 
-  # job-02-push-acr:
-  #   runs-on: [self-hosted, "${{ inputs.runner-type }}"]
-  #   environment: need-approvals
-  #   needs: job-01-ci
-  #   if: success()
-  #   steps:
-  #     - name: 1. Azure Login
-  #       uses: azure/login@v2
-  #       with:
-  #         auth-type: IDENTITY # VM System Assigned Identity
-  #         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-  #         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  job-02-push-acr:
+    runs-on: [self-hosted, "${{ inputs.runner-type }}"]
+    environment: need-approvals
+    needs: job-01-ci
+    if: success()
+    steps:
+      - name: 1. Azure Login
+        uses: azure/login@v2
+        with:
+          auth-type: IDENTITY # VM System Assigned Identity
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-  #     - name: 2. Login to ACR (VM IDENTITY) & Push Image to ACR
-  #       run: |
-  #         az acr login --name ${{env.REGISTRY }}
-  #         docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      - name: 2. Login to ACR (VM IDENTITY) & Push Image to ACR
+        run: |
+          az acr login --name ${{ env.REGISTRY }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-  #     - name: 3. Stop and Remove Container, Image
-  #       if: always()
-  #       run: |
-  #         docker stop ${{ env.CONTAINER_NAME }}
-  #         docker rm ${{ env.CONTAINER_NAME }}
-  #         docker image rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      - name: 3. Stop and Remove Container, Image
+        if: always()
+        run: |
+          docker stop ${{ env.CONTAINER_NAME }}
+          docker rm ${{ env.CONTAINER_NAME }}
+          docker image rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-  # job-03-gpu-ci:
-  #   runs-on: [self-hosted, gpu]
-  #   environment: need-approvals
-  #   needs: job-02-push-acr
-  #   if: success()
-  #   steps:
-  #     - name: 1. Azure Login
-  #       uses: azure/login@v2
-  #       with:
-  #         auth-type: IDENTITY # VM System Assigned Identity
-  #         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-  #         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  job-03-gpu-ci:
+    runs-on: [self-hosted, gpu]
+    environment: need-approvals
+    needs: job-02-push-acr
+    if: success()
+    steps:
+      - name: 1. Azure Login
+        uses: azure/login@v2
+        with:
+          auth-type: IDENTITY # VM System Assigned Identity
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-  #     - name: 2. Download File From Blob (AzureCLI)
-  #       uses: azure/cli@v2
-  #       with:
-  #         azcliversion: latest
-  #         inlineScript: |
-  #           az storage blob download \
-  #           --account-name ${{ env.STORAGE_NAME }} \
-  #           --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
-  #           --name ${{ env.DOWNLOAD_FILENAME }} \
-  #           --file "${{ github.workspace }}"/${{ env.DOWNLOAD_FILENAME }} \
-  #           --auth-mode login
+      - name: 2. Download File From Blob (AzureCLI)
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az storage blob download \
+            --account-name ${{ env.STORAGE_NAME }} \
+            --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
+            --name ${{ env.DOWNLOAD_FILENAME }} \
+            --file "${{ github.workspace }}"/${{ env.DOWNLOAD_FILENAME }} \
+            --auth-mode login
 
-  #     - name: 3. Login to ACR & Run Container (Image from ACR)
-  #       run: |
-  #         az acr login --name ${{ env.REGISTRY }}
-  #         docker pull $ {{env.REGISTRY }}/${{ env.IMAGE_NAME}}:${{ github.sha }}
+      - name: 3. Login to ACR & Run Container (Image from ACR)
+        run: |
+          az acr login --name ${{ env.REGISTRY }}
+          docker pull $ {{env.REGISTRY }}/${{ env.IMAGE_NAME}}:${{ github.sha }}
 
-  #     - name: 4. Curl Test (Container)
-  #       run: |
-  #         sleep 5s
-  #         max=10; for((i=1; i <= $max; i++)); do curl localhost:8080/text >> curl-test-on-gpu-${{ github.sha }}.txt; echo >> curl-test-on-gpu-${{ github.sha }}.txt; done
+      - name: 4. Curl Test (Container)
+        run: |
+          sleep 5s
+          max=10; for((i=1; i <= $max; i++)); do curl localhost:8080/text >> curl-test-on-gpu-${{ github.sha }}.txt; echo >> curl-test-on-gpu-${{ github.sha }}.txt; done
 
-  #     - name: 5. Upload Test Result to Blob (AzureCLI)
-  #       uses: azure/cli@v2
-  #       with:
-  #         azversion: latest
-  #         inlineScript: |
-  #           az storage blob upload \
-  #           --account-name ${{ env.STORAGE_NAME }} \
-  #           --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
-  #           --name curl-test-on-gpu-${{ github.sha }}.txt \
-  #           --file ${{ github.workspace }}/curl-test-on-gpu-${{ github.sha }}.txt \
-  #           --auth-mode login \
-  #           --overwrite
+      - name: 5. Upload Test Result to Blob (AzureCLI)
+        uses: azure/cli@v2
+        with:
+          azversion: latest
+          inlineScript: |
+            az storage blob upload \
+            --account-name ${{ env.STORAGE_NAME }} \
+            --container-name ${{ env.STORAGE_CONTAINER_NAME }} \
+            --name curl-test-on-gpu-${{ github.sha }}.txt \
+            --file ${{ github.workspace }}/curl-test-on-gpu-${{ github.sha }}.txt \
+            --auth-mode login \
+            --overwrite
 
-  #     - name: 6. Stop and Remove Container, Image
-  #       if: always()
-  #       run: |
-  #         docker stop ${{ env.CONTAINER_NAME }}
-  #         docker rm ${{ env.CONTAINER_NAME }}
-  #         docker image rm ${{ env.REGISTRY}}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      - name: 6. Stop and Remove Container, Image
+        if: always()
+        run: |
+          docker stop ${{ env.CONTAINER_NAME }}
+          docker rm ${{ env.CONTAINER_NAME }}
+          docker image rm ${{ env.REGISTRY}}/${{ env.IMAGE_NAME }}:${{ github.sha }}
