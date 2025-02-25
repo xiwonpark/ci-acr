@@ -9,7 +9,7 @@ on:
           - gpu
 
 env:
-  REGISTRY: ezcoompoc
+  REGISTRY: ezcompoc
   IMAGE_NAME: test
   STORAGE_NAME: githubsa4poc
   STORAGE_CONTAINER_NAME: test
