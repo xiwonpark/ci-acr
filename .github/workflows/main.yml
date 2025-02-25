@@ -13,7 +13,7 @@ env:
   IMAGE_NAME: test
   STORAGE_NAME: githubsa4poc
   STORAGE_CONTAINER_NAME: test
-  DOWNLOAD_FILENAME: test_file
+  DOWNLOAD_FILENAME: test_file.py
   BUILDX_CACHE_DIR: /tmp/buildx_cache_dir/
   CONTAINER_NAME: my-container
 
