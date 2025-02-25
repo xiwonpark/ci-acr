@@ -171,7 +171,7 @@ jobs:
       - name: 3. Login to ACR & Run Container (Image from ACR)
         run: |
           az acr login --name ${{ env.REGISTRY }}
-          docker pull $ {{env.REGISTRY }}/${{ env.IMAGE_NAME}}:${{ github.sha }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}:${{ github.sha }}
 
       - name: 4. Curl Test (Container)
         run: |
