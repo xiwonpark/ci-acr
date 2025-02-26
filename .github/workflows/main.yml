@@ -186,7 +186,7 @@ jobs:
       - name: 5. Upload Test Result to Blob (AzureCLI)
         uses: azure/cli@v2
         with:
-          azversion: latest
+          azcliversion: latest
           inlineScript: |
             az storage blob upload \
             --account-name ${{ env.STORAGE_NAME }} \
