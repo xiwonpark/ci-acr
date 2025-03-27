@@ -121,7 +121,7 @@ jobs:
   job-02-push-acr:
     runs-on: [self-hosted, "${{ inputs.runner-type }}"]
 #    environment: need-approvals
-#    needs: job-01-ci
+    needs: job-01-ci
     if: success()
     steps:
       - name: 1. Azure Login
@@ -146,7 +146,7 @@ jobs:
   job-03-gpu-ci:
     runs-on: [self-hosted, gpu]
 #    environment: need-approvals
-#    needs: job-02-push-acr
+    needs: job-02-push-acr
     if: success()
     steps:
       - name: 1. Azure Login
